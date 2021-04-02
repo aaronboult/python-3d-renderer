@@ -46,11 +46,7 @@ class renderer(object):
 
             self.clock.tick(self.frame_rate)
 
-            for event in pygame.event.get():
-
-                if event.type == pygame.QUIT:
-
-                    self.open = False
+            self.poll_events()
             
             self.screen.fill((255, 255, 255))
 
@@ -59,6 +55,114 @@ class renderer(object):
             pygame.display.update()
 
             pygame.display.set_caption("3D Projection")
+        
+    def poll_events(self):
+
+        for event in pygame.event.get():
+            
+            if event.type == pygame.QUIT:
+
+                self.open = False
+        
+        keys = pygame.key.get_pressed()
+
+        if len(self.objects) > 0:
+
+            if keys[pygame.K_LEFT]:
+
+                self.objects[0].translate(-0.1, 0, 0)
+            
+            if keys[pygame.K_RIGHT]:
+
+                self.objects[0].translate(0.1, 0, 0)
+            
+            if keys[pygame.K_UP]:
+
+                self.objects[0].translate(0, 0.1, 0)
+            
+            if keys[pygame.K_DOWN]:
+
+                self.objects[0].translate(0, -0.1, 0)
+            
+            if keys[pygame.K_x]:
+
+                self.objects[0].translate(0, 0, 0.1)
+            
+            if keys[pygame.K_z]:
+
+                self.objects[0].translate(0, 0, -0.1)
+            
+            if keys[pygame.K_q]:
+
+                self.objects[0].rotate(1, 0, 0)
+            
+            if keys[pygame.K_a]:
+
+                self.objects[0].rotate(-1, 0, 0)
+            
+            if keys[pygame.K_w]:
+
+                self.objects[0].rotate(0, 1, 0)
+            
+            if keys[pygame.K_s]:
+
+                self.objects[0].rotate(0, -1, 0)
+            
+            if keys[pygame.K_e]:
+
+                self.objects[0].rotate(0, 0, 1)
+            
+            if keys[pygame.K_d]:
+
+                self.objects[0].rotate(0, 0, -1)
+            
+            if keys[pygame.K_r]:
+
+                self.objects[0].change_scale(0.1, 0, 0)
+            
+            if keys[pygame.K_f]:
+
+                self.objects[0].change_scale(-0.1, 0, 0)
+            
+            if keys[pygame.K_t]:
+
+                self.objects[0].change_scale(0, 0.1, 0)
+            
+            if keys[pygame.K_g]:
+
+                self.objects[0].change_scale(0, -0.1, 0)
+            
+            if keys[pygame.K_y]:
+
+                self.objects[0].change_scale(0, 0, 0.1)
+            
+            if keys[pygame.K_h]:
+
+                self.objects[0].change_scale(0, 0, -0.1)
+            
+            if keys[pygame.K_u]:
+
+                self.objects[0].change_rotation_rate(0.1, 0, 0)
+            
+            if keys[pygame.K_j]:
+
+                self.objects[0].change_rotation_rate(-0.1, 0, 0)
+            
+            if keys[pygame.K_i]:
+
+                self.objects[0].change_rotation_rate(0, 0.1, 0)
+            
+            if keys[pygame.K_k]:
+
+                self.objects[0].change_rotation_rate(0, -0.1, 0)
+            
+            if keys[pygame.K_o]:
+
+                self.objects[0].change_rotation_rate(0, 0, 0.1)
+            
+            if keys[pygame.K_l]:
+
+                self.objects[0].change_rotation_rate(0, 0, -0.1)
     
     def update_shape(self):
 

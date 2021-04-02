@@ -20,11 +20,35 @@ class transform(object):
 
 class shape(object):
 
-    def __init__(self, obj_transform, x_rotate_rate = 0, y_rotate_rate = 0, z_rotate_rate = 0):
+    def __init__(self, obj_transform, x_rotate_rate = 0, y_rotate_rate = 0, z_rotate_rate = 0, config_window = False):
 
         self.transform = obj_transform
 
         self.rotation_rate = vector([math.pi*x_rotate_rate/180, math.pi*y_rotate_rate/180, math.pi*z_rotate_rate/180])
+    
+    def translate(self, x, y, z):
+
+        self.transform.position.x += x
+        self.transform.position.y += y
+        self.transform.position.z += z
+
+    def rotate(self, x, y, z):
+
+        self.transform.rotation.x += math.pi*x/180
+        self.transform.rotation.y += math.pi*y/180
+        self.transform.rotation.z += math.pi*z/180
+    
+    def change_rotation_rate(self, x, y, z):
+
+        self.rotation_rate.x += math.pi*x/180
+        self.rotation_rate.y += math.pi*y/180
+        self.rotation_rate.z += math.pi*z/180
+    
+    def change_scale(self, x, y, z):
+
+        self.transform.scale.x += x
+        self.transform.scale.y += y
+        self.transform.scale.z += z
     
     def update(self):
 
