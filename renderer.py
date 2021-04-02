@@ -1,7 +1,7 @@
 import os
 import pygame
-from math import sin, cos
-from matrix import matrix
+import math
+from geometry import matrix, vector
 import shapes
 
 class renderer(object):
@@ -18,11 +18,17 @@ class renderer(object):
 
         self.objects = []
 
-        self.camera_position = matrix( [ [0], [0], [0] ] )
+        self.camera_position = vector([0, 0, 0])
 
-        self.camera_rotation = matrix( [ [0], [0], [0] ] )
+        self.camera_rotation = vector([0, 0, 0])
 
-        self.camera_view_plane = matrix ( [ [0], [0], [-1] ] )
+        # Top left and bottom right corners
+        self.camera_view_plane = (
+            (-1, 1),
+            (1, -1)
+        )
+
+        self.camera_view_plane_z = -1
 
         self.frame_rate = frame_rate
 
@@ -62,7 +68,7 @@ class renderer(object):
 
             for i in range(len(obj.verticies)):
                 
-                coords = self.calculate_projection(obj.verticies[i].to_matrix(), obj.transform.scale, obj.transform.position, obj.transform.rotation)
+                coords = self.calculate_projection(obj.verticies[i].position, obj.transform.scale, obj.transform.position, obj.transform.rotation)
 
                 coord_cache[i] = coords
                 
@@ -79,46 +85,34 @@ class renderer(object):
     def calculate_projection(self, point, scale, position, rotation):
 
         # reference: https://en.wikipedia.org/wiki/3D_projection#Mathematical_formula
+    
+        d = point * scale # Scale the point
+        d = renderer.calculate_rotation_matrix(rotation) * d # Rotate point about origin based on rotation
+        d = d + position - self.camera_position # Adjust point position relative to camera and based on world position
 
-        d = point
-        d = renderer.calculate_rotation_matrix(rotation) * d
-        d - self.camera_position
-        # d = (point - self.camera_position)
-        d = renderer.calculate_rotation_matrix(self.camera_rotation) * d
-        d = scale * d + position
+        d_x = d[0]
+        d_y = d[1]
+        d_z = d[2]
+        recording_size_x = self.camera_view_plane[1][0] - self.camera_view_plane[0][0]
+        recording_size_y = self.camera_view_plane[1][1] - self.camera_view_plane[0][1]
 
-        screen_space_x = self.camera_view_plane[0][0]
-        screen_space_y = self.camera_view_plane[1][0]
-        screen_space_z = self.camera_view_plane[2][0]
+        x = 0
+        y = 0
 
-        f_xyw = matrix(
-            [
-                [1, 0, screen_space_x / screen_space_z],
-                [0, 1, screen_space_y / screen_space_z],
-                [0, 0, 1 / screen_space_z]
-            ]
-        ) * d
+        if d_z != 0:
 
-        if f_xyw[2][0] != 0:
+            x = (d_x * self.resolutionX) / (d_z * recording_size_x) * self.camera_view_plane_z
+            y = (d_y * self.resolutionY) / (d_z * recording_size_y) * self.camera_view_plane_z
 
-            x = f_xyw[0][0] / f_xyw[2][0]
-            y = f_xyw[1][0] / f_xyw[2][0]
-
-            print((x, y))
-
-            return (self.resolutionX // 2 + int(x), self.resolutionY // 2 + int(y))
-
-        else:
-
-            return (-1, -1)
+        return (self.resolutionX // 2 + int(x), self.resolutionY // 2 + int(y))
     
     def calculate_x_rotation_matrix(x_angle):
 
         return matrix(
             [
                 [1, 0, 0],
-                [0, cos(x_angle), -sin(x_angle)],
-                [0, sin(x_angle), cos(x_angle)]
+                [0, math.cos(x_angle), -math.sin(x_angle)],
+                [0, math.sin(x_angle), math.cos(x_angle)]
             ]
         )
     
@@ -126,9 +120,9 @@ class renderer(object):
 
         return matrix(
             [
-                [cos(y_angle), 0, -sin(y_angle)],
+                [math.cos(y_angle), 0, -math.sin(y_angle)],
                 [0, 1, 0],
-                [sin(y_angle), 0, cos(y_angle)]
+                [math.sin(y_angle), 0, math.cos(y_angle)]
             ]
         )
     
@@ -136,26 +130,30 @@ class renderer(object):
 
         return matrix(
             [
-                [cos(z_angle), -sin(z_angle), 0],
-                [sin(z_angle), cos(z_angle), 0],
+                [math.cos(z_angle), -math.sin(z_angle), 0],
+                [math.sin(z_angle), math.cos(z_angle), 0],
                 [0, 0, 1]
             ]
         )
         
     def calculate_rotation_matrix(angles):
 
-        x_angle = angles[0][0]
-        y_angle = angles[1][0]
-        z_angle = angles[2][0]
+        x_angle = angles[0]
+        y_angle = angles[1]
+        z_angle = angles[2]
 
-        rotation = renderer.calculate_x_rotation_matrix(z_angle) * renderer.calculate_y_rotation_matrix(y_angle) * renderer.calculate_z_rotation_matrix(x_angle)
-
-        return  rotation
+        return renderer.calculate_x_rotation_matrix(z_angle) * renderer.calculate_y_rotation_matrix(y_angle) * renderer.calculate_z_rotation_matrix(x_angle)
 
 if __name__ == "__main__":
 
     r = renderer()
 
-    r.objects.append(shapes.cuboid(shapes.transform(x=0, y=0, z=-200, scale=30, x_angle=0), 500, 500, 10, y_rotate_rate = 0.1))
+    my_transform = shapes.transform(z=-10, x_scale=1, y_scale=5, z_scale=1, y_angle=0)
+    my_shape = shapes.cuboid(my_transform, x_rotate_rate = 0, y_rotate_rate = 1, z_rotate_rate = 0)
+    r.objects.append(my_shape)
+
+    my_transform = shapes.transform(x=-10, z=-20, x_scale=1, y_scale=1, z_scale=1, y_angle=0)
+    my_shape = shapes.cuboid(my_transform, x_rotate_rate = 0, y_rotate_rate = 0, z_rotate_rate = 1)
+    r.objects.append(my_shape)
 
     r.show()

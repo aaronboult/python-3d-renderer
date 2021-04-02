@@ -1,19 +1,22 @@
-from matrix import matrix
+from geometry import matrix, vector
 import math
 
 class transform(object):
 
-    def __init__(self, x = 0, y = 0, z = 0, x_angle = 0, y_angle = 0, z_angle = 0, scale = 1):
+    def __init__(self, x = 0, y = 0, z = 0, x_angle = 0, y_angle = 0, z_angle = 0, scale = None, x_scale = 1, y_scale = 1, z_scale = 1):
 
-        self.x = x
-        self.y = y
-        self.z = z
+        if scale != None:
 
-        self.scale = scale
+            x_scale = scale if x_scale == 1 else x_scale
+            y_scale = scale if y_scale == 1 else y_scale
+            z_scale = scale if z_scale == 1 else z_scale
 
-        self.position = matrix( [ [self.x], [self.y], [self.z] ] )
-        
-        self.rotation = matrix( [ [x_angle], [y_angle], [z_angle] ] )
+        self.position = vector([x, y, z])
+
+        self.scale = vector([x_scale, y_scale, z_scale])
+
+        # Convert angles in degrees to radians
+        self.rotation = vector([math.pi*x_angle/180, math.pi*y_angle/180, math.pi*z_angle/180])
 
 class shape(object):
 
@@ -21,35 +24,25 @@ class shape(object):
 
         self.transform = obj_transform
 
-        self.rotation_rate = [(x_rotate_rate*math.pi)/180, (y_rotate_rate*math.pi)/180, (z_rotate_rate*math.pi)/180]
+        self.rotation_rate = vector([math.pi*x_rotate_rate/180, math.pi*y_rotate_rate/180, math.pi*z_rotate_rate/180])
     
     def update(self):
 
-        self.transform.rotation[0][0] += self.rotation_rate[0]
-        self.transform.rotation[1][0] += self.rotation_rate[1]
-        self.transform.rotation[2][0] += self.rotation_rate[2]
+        self.transform.rotation.x += self.rotation_rate.x
+        self.transform.rotation.y += self.rotation_rate.y
+        self.transform.rotation.z += self.rotation_rate.z
 
 class cuboid(shape):
 
-    def __init__(self, obj_transform, width, height, depth = -1, x_rotate_rate = 0, y_rotate_rate = 0, z_rotate_rate = 0):
-
-        if depth < 0:
-
-            depth = width
+    def __init__(self, obj_transform, x_rotate_rate = 0, y_rotate_rate = 0, z_rotate_rate = 0):
 
         super().__init__(obj_transform, x_rotate_rate = x_rotate_rate, y_rotate_rate = y_rotate_rate, z_rotate_rate = z_rotate_rate)
 
-        self.width = width
-
-        self.height = height
-
-        self.depth = depth
-
         self.verticies = []
 
-        x_offset = self.width / 2
-        y_offset = self.height / 2
-        z_offset = self.depth / 2
+        x_offset = 1
+        y_offset = 1
+        z_offset = 1
 
         self.verticies.append(vertex(-x_offset, y_offset, -z_offset)) # Back top left
         self.verticies.append(vertex(-x_offset, y_offset, z_offset)) # Front top left
@@ -83,28 +76,16 @@ class vertex(object):
 
     def __init__(self, x, y, z):
 
-        self.x = x
-        self.y = y
-        self.z = z
+        self.position = vector([x, y, z])
 
         self.joined_to = []
     
     def __str__(self):
 
-        return f"{{ {self.x}, {self.y}, {self.z} }}"
+        return f"{{ {self.position.x}, {self.position.y}, {self.position.z} }}"
     
     def join_to(self, to_join_to):
 
         for vert in to_join_to:
 
             self.joined_to.append(vert)
-
-    def to_matrix(self):
-
-        return matrix(
-            [
-                [self.x],
-                [self.y],
-                [self.z]
-            ]
-        )
